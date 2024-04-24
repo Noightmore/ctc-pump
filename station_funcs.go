@@ -35,7 +35,7 @@ func spawnCars(stations *map[string]*Station, carCount int, carCfg *Config, wg *
 		for _, station := range *stations {
 			if len(station.StationQueue) < cap(station.StationQueue) && station.IsAvailable {
 				station.StationQueue <- car
-				//fmt.Println("Car added to station queue")
+				fmt.Println("Car added to station queue")
 				added = true
 				break
 			}
@@ -56,42 +56,68 @@ func processPump(station *Station, registers *[]*Register, wg *sync.WaitGroup, q
 			if !ok {
 				return // Exit if the StationQueue is closed
 			}
-			// Process the car here
-			placed := false
 
+			// Initialize variables for processing
+			placed := false
+			t := time.Duration(rand.Int63n(int64(station.ServeTimeMax)-int64(station.ServeTimeMin)) + int64(station.ServeTimeMin))
+
+			// Attempt to place car in an available register
 		processLoop: // Label for the outer loop
 			for _, register := range *registers {
 				select {
 				case register.RegisterQueue <- car:
-					// Handle the car once successfully placed
-					t := time.Duration(rand.Int63n(int64(station.ServeTimeMax)-int64(station.ServeTimeMin)) + int64(station.ServeTimeMin))
-					time.Sleep(t) // Simulate processing time
-
-					// Update station data
-					station.TotalCars++
-					station.TotalTime += t
-
-					if station.MaxQueueTime < t {
-						station.MaxQueueTime = t
-					}
-
+					// Successful placement
 					placed = true
-					break processLoop // Break out of the for-loop, not just the select
+					fmt.Println("Car processed at pump and placed in register queue in", t)
+					break processLoop
 				case <-quit:
-					return // Exit immediately if quit signal is received
+					return // Exit if quit signal is received
 				default:
-					// Print message and continue to the next register
-					//fmt.Println("Register queue is full. Trying next...")
+					// This register is full, try the next one
 				}
 			}
 
 			if !placed {
-				//fmt.Println("All register queues are full. Retrying...")
-				time.Sleep(1 * time.Second) // Wait and retry or exit based on specific needs
+				fmt.Println("All register queues are full, waiting for an available register...")
+				// Wait until we can place the car or a quit signal is received
+				placed = waitForAvailableRegister(registers, car, quit)
+				if !placed {
+					fmt.Println("Failed to place car, quitting...")
+					return // Optionally handle as needed if the car could not be placed after waiting
+				}
 			}
+
+			// Update station data only after successful placement
+			station.TotalCars++
+			station.TotalTime += t
+			if station.MaxQueueTime < t {
+				station.MaxQueueTime = t
+			}
+
+			time.Sleep(t) // Simulate the time taken to process the car at the pump
+
 		case <-quit:
 			return // Exit immediately if quit signal is received
 		}
+	}
+}
+
+// Helper function to block until a car can be placed in a register or quit is received
+func waitForAvailableRegister(registers *[]*Register, car *Car, quit chan struct{}) bool {
+	for {
+		for _, register := range *registers {
+			select {
+			case register.RegisterQueue <- car:
+				fmt.Println("Car placed in register queue after waiting.")
+				return true
+			case <-quit:
+				return false
+			default:
+				// Continue to next register
+			}
+		}
+		// Optional: small sleep to prevent a tight loop hammering the CPU
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
@@ -119,6 +145,7 @@ func processRegister(register *Register, wg *sync.WaitGroup, quit chan struct{})
 			// print the car
 
 			//fmt.Printf("Car: %v\n", car)
+			fmt.Printf("Car processed at register in %v\n", t)
 
 		case <-quit:
 			return // Exit immediately if quit signal is received

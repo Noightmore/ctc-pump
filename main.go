@@ -119,7 +119,12 @@ func main() {
 		fmt.Printf("Station type: %s\n", stationType)
 		fmt.Printf("Total cars: %d\n", station.TotalCars)
 		fmt.Printf("Total queue time: %s\n", station.TotalTime)
-		fmt.Printf("Average queue time: %s\n", station.TotalTime/time.Duration(station.TotalCars))
+
+		// print only if length of station queue is greater than 0
+		if time.Duration(station.TotalCars) > 0 {
+			fmt.Printf("Average queue time: %s\n", station.TotalTime/time.Duration(station.TotalCars))
+		}
+
 		fmt.Printf("Max queue time: %s\n", station.MaxQueueTime)
 		fmt.Printf("-----------------------\n")
 	}
@@ -129,7 +134,11 @@ func main() {
 		fmt.Printf("Register number: %d\n", i)
 		fmt.Printf("Total cars: %d\n", reg.TotalCars)
 		fmt.Printf("Total queue time: %s\n", reg.TotalTime)
-		fmt.Printf("Average queue time: %s\n", reg.TotalTime/time.Duration(reg.TotalCars))
+
+		if time.Duration(reg.TotalCars) > 0 {
+			fmt.Printf("Average queue time: %s\n", reg.TotalTime/time.Duration(reg.TotalCars))
+		}
+
 		fmt.Printf("Max queue time: %s\n", reg.MaxQueueTime)
 		fmt.Printf("-----------------------\n")
 	}
