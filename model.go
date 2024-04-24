@@ -48,7 +48,7 @@ func InitializeRegister(HandleTimeMin time.Duration, HandleTimeMax time.Duration
 	register.TotalCars = 0
 	register.TotalTime = 0
 	register.MaxQueueTime = 0
-	register.RegisterQueue = make(chan *Car, 30)
+	register.RegisterQueue = make(chan *Car, 3)
 	register.Mutex = &sync.Mutex{}
 
 	return &register

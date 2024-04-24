@@ -54,6 +54,11 @@ func main() {
 		log.Fatalf("Error parsing handle time max for registers: %v", err)
 	}
 
+	// minimal number of required registers is 2 to ensure that the simulation runs
+	if myConfig.Registers.Count <= 1 {
+		myConfig.Registers.Count = 2
+	}
+
 	registers := make([]*Register, 0, myConfig.Registers.Count)
 	for i := 0; i < myConfig.Registers.Count; i++ {
 		register := InitializeRegister(mi, ma)
@@ -130,16 +135,23 @@ func main() {
 	}
 
 	fmt.Printf("Register Statistics\n")
-	for i, reg := range registers {
-		fmt.Printf("Register number: %d\n", i)
-		fmt.Printf("Total cars: %d\n", reg.TotalCars)
-		fmt.Printf("Total queue time: %s\n", reg.TotalTime)
 
-		if time.Duration(reg.TotalCars) > 0 {
-			fmt.Printf("Average queue time: %s\n", reg.TotalTime/time.Duration(reg.TotalCars))
-		}
+	sumTotalCars := 0
+	sumTotalQueueTime := 0
+	sumMaxQueueTime := 0
 
-		fmt.Printf("Max queue time: %s\n", reg.MaxQueueTime)
-		fmt.Printf("-----------------------\n")
+	for _, reg := range registers {
+		sumTotalCars += reg.TotalCars
+		sumTotalQueueTime += int(reg.TotalTime)
+		sumMaxQueueTime += int(reg.MaxQueueTime)
 	}
+
+	fmt.Printf("Total cars: %d\n", sumTotalCars)
+	fmt.Printf("Total queue time: %s\n", time.Duration(sumTotalQueueTime))
+
+	if sumTotalCars > 0 {
+		fmt.Printf("Average queue time: %s\n", time.Duration(sumTotalQueueTime/sumTotalCars))
+	}
+
+	fmt.Printf("Max queue time: %s\n", time.Duration(sumMaxQueueTime)/time.Duration(len(registers)))
 }

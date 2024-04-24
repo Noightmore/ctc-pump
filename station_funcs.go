@@ -35,7 +35,7 @@ func spawnCars(stations *map[string]*Station, carCount int, carCfg *Config, wg *
 		for _, station := range *stations {
 			if len(station.StationQueue) < cap(station.StationQueue) && station.IsAvailable {
 				station.StationQueue <- car
-				fmt.Println("Car added to station queue")
+				//fmt.Println("Car added to station queue")
 				added = true
 				break
 			}
@@ -68,7 +68,7 @@ func processPump(station *Station, registers *[]*Register, wg *sync.WaitGroup, q
 				case register.RegisterQueue <- car:
 					// Successful placement
 					placed = true
-					fmt.Println("Car processed at pump and placed in register queue in", t)
+					//fmt.Println("Car processed at pump and placed in register queue in", t)
 					break processLoop
 				case <-quit:
 					return // Exit if quit signal is received
@@ -78,11 +78,11 @@ func processPump(station *Station, registers *[]*Register, wg *sync.WaitGroup, q
 			}
 
 			if !placed {
-				fmt.Println("All register queues are full, waiting for an available register...")
+				//fmt.Println("All register queues are full, waiting for an available register...")
 				// Wait until we can place the car or a quit signal is received
 				placed = waitForAvailableRegister(registers, car, quit)
 				if !placed {
-					fmt.Println("Failed to place car, quitting...")
+					//fmt.Println("Failed to place car, quitting...")
 					return // Optionally handle as needed if the car could not be placed after waiting
 				}
 			}
@@ -108,12 +108,13 @@ func waitForAvailableRegister(registers *[]*Register, car *Car, quit chan struct
 		for _, register := range *registers {
 			select {
 			case register.RegisterQueue <- car:
-				fmt.Println("Car placed in register queue after waiting.")
+				//fmt.Println("Car placed in register queue after waiting.")
 				return true
 			case <-quit:
 				return false
 			default:
 				// Continue to next register
+
 			}
 		}
 		// Optional: small sleep to prevent a tight loop hammering the CPU
@@ -145,7 +146,7 @@ func processRegister(register *Register, wg *sync.WaitGroup, quit chan struct{})
 			// print the car
 
 			//fmt.Printf("Car: %v\n", car)
-			fmt.Printf("Car processed at register in %v\n", t)
+			//fmt.Printf("Car processed at register in %v\n", t)
 
 		case <-quit:
 			return // Exit immediately if quit signal is received
