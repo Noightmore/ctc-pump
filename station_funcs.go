@@ -35,14 +35,14 @@ func spawnCars(stations *map[string]*Station, carCount int, carCfg *Config, wg *
 		for _, station := range *stations {
 			if len(station.StationQueue) < cap(station.StationQueue) && station.IsAvailable {
 				station.StationQueue <- car
-				fmt.Println("Car added to station queue")
+				//fmt.Println("Car added to station queue")
 				added = true
 				break
 			}
 		}
 
 		if !added {
-			fmt.Println("All station queues are full, waiting...")
+			//fmt.Println("All station queues are full, waiting...")
 			time.Sleep(10 * time.Millisecond) // Wait before trying again if no queue was available
 		}
 	}
@@ -71,18 +71,22 @@ func processPump(station *Station, registers *[]*Register, wg *sync.WaitGroup, q
 					station.TotalCars++
 					station.TotalTime += t
 
+					if station.MaxQueueTime < t {
+						station.MaxQueueTime = t
+					}
+
 					placed = true
 					break processLoop // Break out of the for-loop, not just the select
 				case <-quit:
 					return // Exit immediately if quit signal is received
 				default:
 					// Print message and continue to the next register
-					fmt.Println("Register queue is full. Trying next...")
+					//fmt.Println("Register queue is full. Trying next...")
 				}
 			}
 
 			if !placed {
-				fmt.Println("All register queues are full. Retrying...")
+				//fmt.Println("All register queues are full. Retrying...")
 				time.Sleep(1 * time.Second) // Wait and retry or exit based on specific needs
 			}
 		case <-quit:
@@ -95,7 +99,7 @@ func processRegister(register *Register, wg *sync.WaitGroup, quit chan struct{})
 	defer wg.Done()
 	for {
 		select {
-		case car, ok := <-register.RegisterQueue:
+		case _, ok := <-register.RegisterQueue:
 			if !ok {
 				return // Exit if the RegisterQueue is closed
 			}
@@ -105,11 +109,16 @@ func processRegister(register *Register, wg *sync.WaitGroup, quit chan struct{})
 			register.Mutex.Lock()
 			register.TotalCars++
 			register.TotalTime += t
+
+			if register.MaxQueueTime < t {
+				register.MaxQueueTime = t
+			}
 			register.Mutex.Unlock()
 			// sleep for t time
 			time.Sleep(t)
 			// print the car
-			fmt.Printf("Car: %v\n", car)
+
+			//fmt.Printf("Car: %v\n", car)
 
 		case <-quit:
 			return // Exit immediately if quit signal is received

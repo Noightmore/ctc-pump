@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 // main function
@@ -80,12 +81,14 @@ func main() {
 
 	// print the stations data
 
-	for stationType, station := range stations {
-		fmt.Printf("Station type: %s\n", stationType)
-		fmt.Printf("Serve time min: %s\n", station.ServeTimeMin)
-		fmt.Printf("Serve time max: %s\n", station.ServeTimeMax)
-	}
+	//for stationType, station := range stations {
+	//	fmt.Printf("Station type: %s\n", stationType)
+	//	fmt.Printf("Serve time min: %s\n", station.ServeTimeMin)
+	//	fmt.Printf("Serve time max: %s\n", station.ServeTimeMax)
+	//}
 
+	fmt.Printf("Starting simulation -- hang on tight!\n")
+	fmt.Printf("-----------------------\n")
 	var wg sync.WaitGroup
 	quit := make(chan struct{})
 
@@ -115,8 +118,19 @@ func main() {
 	for stationType, station := range stations {
 		fmt.Printf("Station type: %s\n", stationType)
 		fmt.Printf("Total cars: %d\n", station.TotalCars)
-		fmt.Printf("Total time: %s\n", station.TotalTime)
+		fmt.Printf("Total queue time: %s\n", station.TotalTime)
+		fmt.Printf("Average queue time: %s\n", station.TotalTime/time.Duration(station.TotalCars))
 		fmt.Printf("Max queue time: %s\n", station.MaxQueueTime)
+		fmt.Printf("-----------------------\n")
+	}
+
+	fmt.Printf("Register Statistics\n")
+	for i, reg := range registers {
+		fmt.Printf("Register number: %d\n", i)
+		fmt.Printf("Total cars: %d\n", reg.TotalCars)
+		fmt.Printf("Total queue time: %s\n", reg.TotalTime)
+		fmt.Printf("Average queue time: %s\n", reg.TotalTime/time.Duration(reg.TotalCars))
+		fmt.Printf("Max queue time: %s\n", reg.MaxQueueTime)
 		fmt.Printf("-----------------------\n")
 	}
 }
